@@ -1,0 +1,41 @@
+# Optional: run the project with Docker (PHP 8.3 + MySQL 8) without installing
+# PHP locally. See README.md -> "Option B: Docker".
+services:
+  app:
+    build: ./docker/php
+    container_name: bp_app
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html
+    ports:
+      - "8000:8000"
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DATABASE: bp_ecommerce
+      DB_USERNAME: bp_user
+      DB_PASSWORD: secret
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  mysql:
+    image: mysql:8.0
+    container_name: bp_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: bp_ecommerce
+      MYSQL_USER: bp_user
+      MYSQL_PASSWORD: secret
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  mysql_data:
